@@ -2,7 +2,7 @@
 Small collection of powershell scripts useful during lateral movement
 
 ## Find-InterestingFiles
-  Look for keywords in files and package them for exfil
+  Look for keywords in files and package them for exfil. The "LocationIsServer" allows you to specify a file share (e.g. \\myserver) and it will pillage all shares
   ```
   FindInterestingFiles 'C:\secrets' -packfiles $true -compress $true -outputfile here.bin
   ```

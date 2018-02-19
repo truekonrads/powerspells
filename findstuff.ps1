@@ -50,7 +50,7 @@ function Find-InterestingFiles{
         [Parameter(Position=0,mandatory=$true)]
         [string] $location,
         [Parameter(Position=1,mandatory=$false)]
-        [string[]] $exts=("*.bat", "*.vbs", "*.cmd", "*.ps1"),
+        [string[]] $exts=("*.bat", "*.vbs", "*.cmd", "*.ps1", "*.sh", "*.pl", "*.txt","*.xml"),
         [Parameter(Position=2,mandatory=$false)]
         [string[]] $interesting=("user","pass","net use","login"),
         [Parameter(Position=3,mandatory=$false)]
@@ -58,11 +58,19 @@ function Find-InterestingFiles{
         [Parameter(Position=4,mandatory=$false)]
         [Bool] $compress=$false,
         [Parameter(Position=5,mandatory=$false)]
-        [string] $outputfile=""
+        [string] $outputfile="",
+        [Parameter(mandatory=$false)]
+        [string] $LocationIsServer=$false
     )
     $outputbuffer=""
-
-    Get-ChildItem $location -Recurse -Include $exts -File | % {
+    if ($LocationIsServer){
+        $shares=(net view $location /ALL) | % { if($_.IndexOf(' Disk ') -gt 0){ $_.Split('  ')[0] } }
+        $fullLocations=$shares | % {"$($location)\$_"}
+    }else{
+        $fullLocations=@($location)
+    }
+    # $fullLocations
+    $fullLocations | Get-ChildItem  -Recurse -Include $exts -File -ErrorAction "SilentlyContinue"| % {
         $contents = [io.file]::ReadAllText($_.FullName);
         $fullname = $_.FullName;
                 
