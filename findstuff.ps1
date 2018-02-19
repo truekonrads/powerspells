@@ -60,33 +60,37 @@ function Find-InterestingFiles{
         [Parameter(Position=5,mandatory=$false)]
         [string] $outputfile=""
     )
+    $outputbuffer=""
 
     Get-ChildItem $location -Recurse -Include $exts -File | % {
         $contents = [io.file]::ReadAllText($_.FullName);
         $fullname = $_.FullName;
-        $pack="";
-        ForEach-Object -InputObject $interesting {
-            if ($contents -match ($interesting -join "|")){
-                if ($packfiles){
-                    $pack="---BEGIN $($fullname) ---`n$($contents)`n---END $($fullname)---`n"
-                }else{
-                    $o=New-Object PSObject -Property @{FullName = $fullname; contents=$contents}                
-                    $o
-                }
-            }
-        }
-        if ($pack) {
-            if ($compress){
-                [System.IO.MemoryStream] $output = New-Object System.IO.MemoryStream;
-                $compressed = Compress ($pack |ToBytes)
-                if ($outputfile){
-                    $compressed | Set-Content $outputfile -Encoding Byte
-                }else{
-                    $compressed #do with byte array what you please
-                }
+                
+        if ($contents -match ($interesting -join "|")){
+            if ($packfiles){
+                $outputbuffer+="---BEGIN $($fullname) ---`n$($contents)`n---END $($fullname)---`n"
             }else{
-                $pack
+                $o=New-Object PSObject -Property @{FullName = $fullname; contents=$contents}                
+                $o
+            }        
+        }
+        
+    } # end Get-ChildItem
+    if ($packfiles) {
+        if ($compress){
+            $compressed = Compress ($outputbuffer |ToBytes)
+            if ($outputfile){
+                $compressed | Set-Content $outputfile -Encoding Byte
+            }else{
+                $compressed #do with byte array what you please
             }
+        }else{ # don't compresss
+            if ($outputfile){
+                $outputbuffer | Set-Content $outputfile -Encoding Byte
+            }else{
+                $outputbuffer #do with the buffer what you want
+            }
+            
         }
     }
 }
