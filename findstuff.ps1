@@ -40,9 +40,14 @@ function Find-InterestingFiles {
     .PARAMETER compress
         Compress the package?
     .PARAMETER outputfile
-        Where to write the compressed archive to    
+        Where to write the compressed archive to  
+    .PARAMETER LocationIsServer
+        If location is a server, then this will enumerate shares before trawling those
+    .PARAMETER maxfilesize
+        Maximum file size to go through
     .EXAMPLE
         FindInterestingFiles 'C:\secrets' -packfiles $true -compress $true -outputfile here.bin
+        FindInterestingFiles \\mydc -LocationIsServer $true -packfiles $true -outputfile cool_files.txt
     
 #>
     [CmdletBinding()]
@@ -84,7 +89,7 @@ function Find-InterestingFiles {
                 Write-Host "Processing $fullname"
                 if ($contents -match ($interesting -join "|")) {
                     if ($packfiles) {
-                        $outputbuffer += "---BEGIN $($fullname) ---`n$($contents)`n---END $($fullname)---`n"
+                        $outputbuffer += "`n---BEGIN $($fullname) ---`n$($contents)`n---END $($fullname)---`n"
                     }
                     else {
                         $o = New-Object PSObject -Property @{FullName = $fullname; contents = $contents}                
@@ -108,7 +113,7 @@ function Find-InterestingFiles {
         else {
             # don't compresss
             if ($outputfile) {
-                $outputbuffer | Set-Content $outputfile -Encoding Byte
+                $outputbuffer | Set-Content $outputfile
             }
             else {
                 $outputbuffer #do with the buffer what you want
